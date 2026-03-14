@@ -29,6 +29,7 @@ jobs:
         run: python -m pip install --upgrade pip pyinstaller
 
       - name: Build app executable
+        shell: bash
         run: |
           pyinstaller \
             --name ffmpeg-gui \
@@ -41,9 +42,9 @@ jobs:
         run: |
           mkdir -p artifacts
           if [ "${{ runner.os }}" = "Windows" ]; then
-            cp dist/ffmpeg-gui.exe artifacts/
+            cp dist/ffmpeg-gui.exe artifacts/;
           else
-            cp dist/ffmpeg-gui artifacts/
+            cp dist/ffmpeg-gui artifacts/;
           fi
 
       - name: Upload executable artifact
