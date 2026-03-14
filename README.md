@@ -30,3 +30,15 @@ python3 app.py
 
 - Default output file pattern: `original-name-output.ext`
 - Default local output folder (when empty): `input-file-folder/output/`
+
+## GitHub Actions build
+
+A workflow is included at `.github/workflows/build-executable.yml` to package the app as an executable with PyInstaller on Linux, macOS, and Windows.
+
+- Run it manually from the **Actions** tab (`workflow_dispatch`), or
+- let it run automatically on pushes to `main` and pull requests.
+
+Each run uploads platform-specific artifacts named:
+- `ffmpeg-gui-Linux`
+- `ffmpeg-gui-macOS`
+- `ffmpeg-gui-Windows`
