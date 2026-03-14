@@ -23,6 +23,7 @@ class FFmpegGuiApp:
         self.running = False
 
         self.output_dir_var = tk.StringVar()
+        self.ffmpeg_path_var = tk.StringVar()
         self.codec_var = tk.StringVar(value="libx264")
         self.crf_var = tk.StringVar(value="23")
         self.preset_var = tk.StringVar(value="medium")
@@ -93,6 +94,12 @@ class FFmpegGuiApp:
         ttk.Entry(out_row, textvariable=self.output_dir_var).pack(side=tk.LEFT, fill=tk.X, expand=True, padx=8)
         ttk.Button(out_row, text="Browse", command=self.choose_output_dir).pack(side=tk.LEFT)
 
+        ffmpeg_row = ttk.Frame(out)
+        ffmpeg_row.pack(fill=tk.X, pady=(8, 0))
+        ttk.Label(ffmpeg_row, text="ffmpeg binary (optional; leave blank to use PATH)").pack(side=tk.LEFT)
+        ttk.Entry(ffmpeg_row, textvariable=self.ffmpeg_path_var).pack(side=tk.LEFT, fill=tk.X, expand=True, padx=8)
+        ttk.Button(ffmpeg_row, text="Browse", command=self.choose_ffmpeg_binary).pack(side=tk.LEFT)
+
         actions = ttk.Frame(container)
         actions.pack(fill=tk.X, pady=10)
         self.run_button = ttk.Button(actions, text="Run batch", command=self.run_batch)
@@ -135,8 +142,28 @@ class FFmpegGuiApp:
         if selected:
             self.output_dir_var.set(selected)
 
+    def choose_ffmpeg_binary(self) -> None:
+        filetypes = [("ffmpeg", "ffmpeg ffmpeg.exe"), ("Executable", "*.exe"), ("All files", "*.*")]
+        selected = filedialog.askopenfilename(title="Choose ffmpeg binary", filetypes=filetypes)
+        if selected:
+            self.ffmpeg_path_var.set(selected)
+
+    def _resolve_ffmpeg_binary(self) -> str | None:
+        custom = self.ffmpeg_path_var.get().strip()
+        if custom:
+            custom_path = Path(custom).expanduser()
+            if is_executable_file(custom_path):
+                return str(custom_path)
+            return None
+
+        return shutil_which("ffmpeg")
+
     def build_command(self, input_file: Path, output_file: Path) -> list[str]:
-        cmd = ["ffmpeg", "-y", "-i", str(input_file)]
+        ffmpeg_binary = self._resolve_ffmpeg_binary()
+        if not ffmpeg_binary:
+            raise RuntimeError("Could not resolve ffmpeg binary")
+
+        cmd = [ffmpeg_binary, "-y", "-i", str(input_file)]
 
         start = self.start_time_var.get().strip()
         end = self.end_time_var.get().strip()
@@ -190,9 +217,12 @@ class FFmpegGuiApp:
             messagebox.showerror("No files", "Please add one or more video files first.")
             return
 
-        if not shutil_which("ffmpeg"):
-            messagebox.showerror("ffmpeg missing", "Could not find ffmpeg in PATH.")
+        ffmpeg_binary = self._resolve_ffmpeg_binary()
+        if not ffmpeg_binary:
+            messagebox.showerror("ffmpeg missing", "Could not find ffmpeg. Set a custom binary path or add ffmpeg to PATH.")
             return
+
+        self.log(f"Using ffmpeg: {ffmpeg_binary}")
 
         self.running = True
         self.run_button.config(state=tk.DISABLED)
@@ -227,11 +257,27 @@ class FFmpegGuiApp:
 
 
 def shutil_which(binary: str) -> str | None:
+    candidates = [binary]
+    if os.name == "nt" and not binary.lower().endswith(".exe"):
+        candidates.append(f"{binary}.exe")
+
     for directory in os.environ.get("PATH", "").split(os.pathsep):
-        path = Path(directory) / binary
-        if path.exists() and os.access(path, os.X_OK):
-            return str(path)
+        for candidate in candidates:
+            path = Path(directory) / candidate
+            if is_executable_file(path):
+                return str(path)
+
     return None
+
+
+def is_executable_file(path: Path) -> bool:
+    if not path.is_file():
+        return False
+
+    if os.name == "nt":
+        return True
+
+    return os.access(path, os.X_OK)
 
 
 def main() -> None:

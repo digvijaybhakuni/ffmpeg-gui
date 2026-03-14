@@ -14,11 +14,12 @@ Simple desktop GUI for batch video processing with `ffmpeg`.
 - Output location:
   - choose a custom output directory, or
   - leave blank to auto-create an `output/` directory next to each input file.
+- Optional custom path to the `ffmpeg` binary (for example `ffmpeg.exe` on Windows).
 
 ## Requirements
 
 - Python 3.10+
-- `ffmpeg` available in your `PATH`
+- `ffmpeg` available in your `PATH` (or choose a custom ffmpeg executable path in the app)
 
 ## Run
 
