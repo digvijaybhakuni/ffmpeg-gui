@@ -6,10 +6,14 @@ Simple desktop GUI for batch video processing with `ffmpeg`.
 
 - Select multiple video files.
 - Process files in a loop (one by one).
+- Updated dark, modern-looking desktop UI style for better readability.
 - Edit/encode options:
-  - codec, CRF, preset, audio bitrate
+  - video codec dropdown
+  - CRF slider (0-51)
+  - preset dropdown
+  - audio bitrate dropdown
+  - one manual ffmpeg flags text box for custom/advanced options
   - optional trim start/end time
-  - optional extra raw ffmpeg arguments
 - Output naming with suffix (`-output` by default).
 - Output location:
   - choose a custom output directory, or
@@ -40,6 +44,6 @@ A workflow is included at `.github/workflows/build-executable.yml` to package th
 - let it run automatically on pushes to `main` and pull requests.
 
 Each run uploads platform-specific artifacts named:
-- `ffmpeg-gui-Linux`
-- `ffmpeg-gui-macOS`
-- `ffmpeg-gui-Windows`
+- `ffmpeg-gui-Linux` (single executable)
+- `ffmpeg-gui-Windows` (single executable)
+- `ffmpeg-gui-macOS` (`.dmg` containing `ffmpeg-gui.app`)
